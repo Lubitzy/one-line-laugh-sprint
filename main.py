@@ -40,7 +40,20 @@ def main(argv):
     target_dir.mkdir(parents=True, exist_ok=True)
     target = target_dir / "entry.txt"
     target.write_text(LINE, encoding="utf-8")
-    print("wrote %d characters to %s" % (len(LINE), target))
+    # Round-trip verification: read the file back and make sure the bytes on
+    # disk are exactly the line we meant to enter, not a partial write.
+    written = target.read_text(encoding="utf-8")
+    if written != LINE:
+        fail(
+            "entry.txt round-trip mismatch: wrote %d characters, read back %d"
+            % (len(LINE), len(written))
+        )
+    if not 1 <= len(written) <= 200:
+        fail("entry.txt is %d characters, must be 1-200" % len(written))
+    print(
+        "wrote %d characters to %s (verified by reading it back)"
+        % (len(written), target)
+    )
 
 
 if __name__ == "__main__":
